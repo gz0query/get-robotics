@@ -723,6 +723,20 @@ void loop() {
   const resetDefaultCodeButton = document.getElementById("btn-reset-default-code");
   const closeEditorButton = document.getElementById("btn-close-editor");
   const replaceCodeStatus = document.getElementById("replace-code-status");
+  const replayTourButton = document.getElementById("btn-replay-tour");
+  const studentGreetingBadge = document.getElementById("student-greeting-badge");
+  const tourWelcomeOverlay = document.getElementById("tour-welcome-overlay");
+  const tourStudentNameInput = document.getElementById("tour-student-name-input");
+  const tourNameError = document.getElementById("tour-name-error");
+  const beginTourButton = document.getElementById("btn-begin-guided-tour");
+  const skipWelcomeButton = document.getElementById("btn-skip-welcome-tour");
+  const tourStepCard = document.getElementById("tour-step-card");
+  const tourStepCounter = document.getElementById("tour-step-counter");
+  const tourStepTitle = document.getElementById("tour-step-title");
+  const tourStepBody = document.getElementById("tour-step-body");
+  const exitTourButton = document.getElementById("btn-exit-tour");
+  const previousTourButton = document.getElementById("btn-tour-prev");
+  const nextTourButton = document.getElementById("btn-tour-next");
   const boardCards = {
     arduino: document.getElementById("card-arduino"),
     esp32: document.getElementById("card-esp32")
@@ -743,7 +757,11 @@ void loop() {
     !verifyKeyButton || !cancelKeyButton || !keyErrorMessage ||
     !editorPanel || !editorProjectBoard || !editWiringInput ||
     !editCodeTextarea || !saveNewCodeButton || !resetDefaultCodeButton ||
-    !closeEditorButton || !replaceCodeStatus ||
+    !closeEditorButton || !replaceCodeStatus || !replayTourButton ||
+    !studentGreetingBadge || !tourWelcomeOverlay || !tourStudentNameInput ||
+    !tourNameError || !beginTourButton || !skipWelcomeButton ||
+    !tourStepCard || !tourStepCounter || !tourStepTitle || !tourStepBody ||
+    !exitTourButton || !previousTourButton || !nextTourButton ||
     !boardCards.arduino || !boardCards.esp32 ||
     !boardImages.arduino || !boardImages.esp32 ||
     !wiringBoxes.arduino || !wiringBoxes.esp32
@@ -758,6 +776,9 @@ void loop() {
   let previousFocus = null;
   let copyConfirmationTimer = 0;
   let customCodes = {};
+  let studentName = "";
+  let tourStepIndex = 0;
+  let spotlightedElement = null;
 
   function loadCustomCodes() {
     try {
@@ -814,6 +835,166 @@ void loop() {
     }).join("");
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="260" viewBox="0 0 640 260"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#050811"/></linearGradient></defs><rect width="640" height="260" fill="url(#g)"/><path d="M0 220h640M0 40h640" stroke="#00F0FF" stroke-opacity=".12"/><rect x="175" y="34" width="290" height="192" rx="18" fill="${boardColor}" stroke="#00F0FF" stroke-width="2"/><rect x="245" y="81" width="144" height="96" rx="9" fill="#101827" stroke="#94A3B8" stroke-opacity=".6"/><path d="M260 96h114v66H260z" fill="#172033"/><text x="317" y="125" fill="#F8FAFC" font-family="Arial,sans-serif" font-size="17" font-weight="700" text-anchor="middle">${title}</text><text x="317" y="148" fill="#00F0FF" font-family="Arial,sans-serif" font-size="10" text-anchor="middle">PROJECT BOARD GUIDE</text>${pinMarkup}<circle cx="430" cy="72" r="13" fill="#00F0FF" fill-opacity=".85"/><circle cx="430" cy="188" r="8" fill="#A855F7"/><text x="320" y="247" fill="#94A3B8" font-family="Arial,sans-serif" font-size="11" text-anchor="middle">Check board labels before connecting power</text></svg>`;
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  }
+
+  function getSavedStudentName() {
+    try {
+      return localStorage.getItem("getrobotics_student_name") || "";
+    } catch (error) {
+      console.error("Get Robotics: unable to read the saved student name.", error);
+      return "";
+    }
+  }
+
+  function setGreetingBadge(name) {
+    if (!name) {
+      studentGreetingBadge.textContent = "";
+      studentGreetingBadge.style.display = "none";
+      return;
+    }
+    studentGreetingBadge.textContent = `Builder: ${name}`;
+    studentGreetingBadge.style.display = "inline-flex";
+  }
+
+  function clearTourSpotlight() {
+    if (spotlightedElement) {
+      spotlightedElement.classList.remove("tour-spotlight");
+    }
+    document.querySelectorAll(".tour-spotlight").forEach((element) => {
+      element.classList.remove("tour-spotlight");
+    });
+    spotlightedElement = null;
+  }
+
+  function highlightElement(selector) {
+    clearTourSpotlight();
+    const target = document.querySelector(selector);
+    if (!target) {
+      console.error(`Get Robotics: tour target "${selector}" was not found.`);
+      return;
+    }
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+    target.classList.add("tour-spotlight");
+    spotlightedElement = target;
+  }
+
+  function ensureTourProjectOpen() {
+    if (modal.style.display === "none" || activeProjectId !== "stick") {
+      const firstCard = document.querySelector('.project-card[data-project-id="stick"]');
+      openProject("stick", firstCard);
+    }
+  }
+
+  function renderTourStep() {
+    const name = studentName;
+    const steps = [
+      {
+        title: `1. Your 5 Robotics Lab Projects, ${name}`,
+        body: `Welcome to Get Robotics, ${name}! On this page are the 5 hardware projects you are going to build: (1) Smart Blind Walking Stick, (2) Autonomous Motor Car, (3) Wi-Fi Controlled Car, (4) Laser Obstacle Detector, and (5) Breadboard Multi-LED Array.`,
+        action: () => {
+          if (modal.style.display !== "none") {
+            closeProject();
+          }
+          highlightElement("#projects-grid");
+        }
+      },
+      {
+        title: `2. Tap Your Project Card, ${name}`,
+        body: `${name}, each project box shows the reference image and hardware components you need. Once you finish wiring your circuit, tap 'Select Board & Get Code' on that project. Let's open Project 01 together on the next step!`,
+        action: () => {
+          if (modal.style.display !== "none") {
+            closeProject();
+          }
+          highlightElement('.project-card[data-project-id="stick"]');
+        }
+      },
+      {
+        title: `3. Choose Your Robot Brain, ${name}`,
+        body: `Look at these two columns, ${name}. Column 1 is for Arduino Uno and Column 2 is for ESP32. Each column shows its exact pin wiring guide. Tap Arduino Uno if you built your project with an Arduino Uno, or tap ESP32 if you used an ESP32 board.`,
+        action: () => {
+          ensureTourProjectOpen();
+          highlightElement(".board-columns");
+        }
+      },
+      {
+        title: `4. Full Ready-to-Run Code, ${name}`,
+        body: `As soon as you tap your board, ${name}, the complete verified C++ code loads inside this terminal. Switching between Arduino Uno and ESP32 automatically updates the code to match that board's pins.`,
+        action: () => {
+          ensureTourProjectOpen();
+          selectBoard("arduino");
+          highlightElement("#code-section");
+        }
+      },
+      {
+        title: `5. Copy & Upload to Arduino IDE, ${name}`,
+        body: `Finally, ${name}, tap this 'Copy Code' button. It copies the entire code straight to your laptop or phone clipboard. Then open your Arduino IDE, paste the code, and upload it to your robot. You are ready to build, ${name}!`,
+        action: () => {
+          ensureTourProjectOpen();
+          selectBoard("arduino");
+          highlightElement("#btn-copy-code");
+        }
+      }
+    ];
+
+    const step = steps[tourStepIndex];
+    if (!step) {
+      finishTour();
+      return;
+    }
+    step.action();
+    tourStepCounter.textContent = `STEP ${tourStepIndex + 1} OF ${steps.length}`;
+    tourStepTitle.textContent = step.title;
+    tourStepBody.textContent = step.body;
+    previousTourButton.disabled = tourStepIndex === 0;
+    nextTourButton.textContent = tourStepIndex === steps.length - 1 ? "Finish Tour" : "Next Step";
+    tourStepCard.style.display = "block";
+  }
+
+  function openTourWelcome() {
+    clearTourSpotlight();
+    tourStepCard.style.display = "none";
+    if (modal.style.display !== "none") {
+      closeProject();
+    }
+    studentName = getSavedStudentName();
+    tourStudentNameInput.value = studentName;
+    tourNameError.style.display = "none";
+    tourWelcomeOverlay.style.display = "flex";
+    tourStudentNameInput.focus();
+  }
+
+  function beginGuidedTour() {
+    const enteredName = tourStudentNameInput.value.trim();
+    if (!enteredName) {
+      tourNameError.style.display = "block";
+      tourStudentNameInput.focus();
+      return;
+    }
+
+    studentName = enteredName.slice(0, 30);
+    try {
+      localStorage.setItem("getrobotics_student_name", studentName);
+    } catch (error) {
+      console.error("Get Robotics: unable to save the student name.", error);
+    }
+    setGreetingBadge(studentName);
+    tourWelcomeOverlay.style.display = "none";
+    tourNameError.style.display = "none";
+    tourStepIndex = 0;
+    renderTourStep();
+  }
+
+  function finishTour() {
+    clearTourSpotlight();
+    tourStepCard.style.display = "none";
+    if (modal.style.display !== "none") {
+      closeProject();
+    }
+    try {
+      localStorage.setItem("getrobotics_tour_completed", "true");
+    } catch (error) {
+      console.error("Get Robotics: unable to save tour completion.", error);
+    }
   }
 
   async function isKeyValid(input) {
@@ -1047,7 +1228,7 @@ void loop() {
       }
       window.clearTimeout(copyConfirmationTimer);
       copyButton.classList.add("copied");
-      copyButtonText.textContent = "✓ Copied! Paste in Arduino IDE";
+      copyButtonText.textContent = "Copied! Paste in Arduino IDE";
       copyConfirmationTimer = window.setTimeout(resetCopyButton, 2500);
     } catch (error) {
       console.error("Get Robotics: unable to copy project code.", error);
@@ -1104,6 +1285,32 @@ void loop() {
     editorPanel.style.display = "none";
     replaceButton.focus();
   });
+  replayTourButton.addEventListener("click", openTourWelcome);
+  beginTourButton.addEventListener("click", beginGuidedTour);
+  tourStudentNameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      beginGuidedTour();
+    }
+  });
+  skipWelcomeButton.addEventListener("click", () => {
+    tourWelcomeOverlay.style.display = "none";
+  });
+  previousTourButton.addEventListener("click", () => {
+    if (tourStepIndex > 0) {
+      tourStepIndex -= 1;
+      renderTourStep();
+    }
+  });
+  nextTourButton.addEventListener("click", () => {
+    if (tourStepIndex >= 4) {
+      finishTour();
+      return;
+    }
+    tourStepIndex += 1;
+    renderTourStep();
+  });
+  exitTourButton.addEventListener("click", finishTour);
   closeButton.addEventListener("click", closeProject);
   copyButton.addEventListener("click", copyCurrentCode);
   modal.addEventListener("click", (event) => {
@@ -1116,4 +1323,15 @@ void loop() {
       closeProject();
     }
   });
+
+  studentName = getSavedStudentName();
+  setGreetingBadge(studentName);
+  try {
+    if (localStorage.getItem("getrobotics_tour_completed") !== "true") {
+      window.setTimeout(openTourWelcome, 400);
+    }
+  } catch (error) {
+    console.error("Get Robotics: unable to read tour completion status.", error);
+    window.setTimeout(openTourWelcome, 400);
+  }
 })();
