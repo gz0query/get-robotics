@@ -90,7 +90,7 @@
           </svg>
           <span id="master-doc-download-text">Download Master Docs File</span>
         </button>
-        <div class="admin-doc-upload-panel" id="admin-doc-upload-panel" style="display: none;">
+        <div class="admin-doc-upload-panel" id="admin-doc-upload-panel" style="display: flex;">
           <input type="file" id="input-master-doc-file"
             accept=".docx,.doc,.pdf,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
             style="display: none;">
@@ -102,6 +102,13 @@
             <span>Upload / Replace Docs File</span>
           </button>
           <p class="master-doc-upload-status" id="master-doc-upload-status" role="status" aria-live="polite"></p>
+        </div>
+        <div class="master-doc-key-box" id="master-doc-key-box" style="display: none;">
+          <input type="password" id="master-doc-key-input" placeholder="Enter admin key to upload..."
+            aria-label="Admin key to upload the master document" autocomplete="off">
+          <button type="button" class="btn-confirm-doc-key" id="btn-confirm-doc-key">Unlock &amp; Choose File</button>
+          <button type="button" class="btn-cancel-doc-key" id="btn-cancel-doc-key">Cancel</button>
+          <span class="master-doc-key-error" id="master-doc-key-error" role="alert"></span>
         </div>
       </div>
     </section>

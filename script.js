@@ -820,10 +820,14 @@ void loop() {
   const masterDocInfo = document.getElementById("master-doc-info");
   const downloadMasterDocButton = document.getElementById("btn-download-master-doc");
   const masterDocDownloadText = document.getElementById("master-doc-download-text");
-  const adminDocUploadPanel = document.getElementById("admin-doc-upload-panel");
   const replaceMasterDocButton = document.getElementById("btn-replace-master-doc");
   const masterDocFileInput = document.getElementById("input-master-doc-file");
   const masterDocUploadStatus = document.getElementById("master-doc-upload-status");
+  const masterDocKeyBox = document.getElementById("master-doc-key-box");
+  const masterDocKeyInput = document.getElementById("master-doc-key-input");
+  const confirmMasterDocKeyButton = document.getElementById("btn-confirm-doc-key");
+  const cancelMasterDocKeyButton = document.getElementById("btn-cancel-doc-key");
+  const masterDocKeyError = document.getElementById("master-doc-key-error");
   const replayTourButton = document.getElementById("btn-replay-tour");
   const studentGreetingBadge = document.getElementById("student-greeting-badge");
   const tourWelcomeOverlay = document.getElementById("tour-welcome-overlay");
@@ -859,8 +863,10 @@ void loop() {
     !editorPanel || !editorProjectBoard || !editWiringInput ||
     !editCodeTextarea || !saveNewCodeButton || !resetDefaultCodeButton ||
     !closeEditorButton || !replaceCodeStatus || !masterDocInfo ||
-    !downloadMasterDocButton || !masterDocDownloadText || !adminDocUploadPanel ||
+    !downloadMasterDocButton || !masterDocDownloadText ||
     !replaceMasterDocButton || !masterDocFileInput || !masterDocUploadStatus ||
+    !masterDocKeyBox || !masterDocKeyInput || !confirmMasterDocKeyButton ||
+    !cancelMasterDocKeyButton || !masterDocKeyError ||
     !replayTourButton ||
     !studentGreetingBadge || !tourWelcomeOverlay || !tourStudentNameInput ||
     !tourNameError || !beginTourButton || !skipWelcomeButton ||
@@ -883,7 +889,7 @@ void loop() {
   let studentName = "";
   let tourStepIndex = 0;
   let spotlightedElement = null;
-  let adminModeUnlocked = false;
+  let isMasterDocAdminUnlocked = false;
   let masterDocMetadata = null;
 
   function loadCustomCodes() {
@@ -1051,7 +1057,7 @@ void loop() {
   }
 
   async function uploadMasterDoc(file) {
-    if (!adminModeUnlocked || !file) {
+    if (!isMasterDocAdminUnlocked || !file) {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -1060,7 +1066,7 @@ void loop() {
     }
 
     replaceMasterDocButton.disabled = true;
-    setMasterDocUploadStatus("Reading file...");
+    setMasterDocUploadStatus("Uploading document to cloud...");
     try {
       const dataUrl = await readFileAsDataUrl(file);
       const CHUNK_SIZE = 600000;
@@ -1069,7 +1075,6 @@ void loop() {
         chunks.push(dataUrl.slice(offset, offset + CHUNK_SIZE));
       }
 
-      setMasterDocUploadStatus("Uploading to cloud...");
       const metadataRef = doc(db, "robotics_master_doc", "metadata");
       const previousMetadataSnap = await getDoc(metadataRef);
       const previousTotalChunks = previousMetadataSnap.exists()
@@ -1109,8 +1114,8 @@ void loop() {
 
       setMasterDocUploadStatus(
         cleanupFailed
-          ? "Master Docs file replaced live for all students! Old unused chunks could not be removed."
-          : "Master Docs file replaced live for all students!",
+          ? "Upload complete! Document is now live for all students. Old unused chunks could not be removed."
+          : "Upload complete! Document is now live for all students.",
         cleanupFailed
       );
     } catch (error) {
@@ -1375,10 +1380,26 @@ void loop() {
     keyErrorMessage.style.display = "none";
   }
 
-  function lockAdminMode() {
-    adminModeUnlocked = false;
-    adminDocUploadPanel.style.display = "none";
-    masterDocFileInput.value = "";
+  function showMasterDocKeyPrompt() {
+    masterDocKeyError.textContent = "";
+    masterDocKeyInput.value = "";
+    masterDocKeyBox.style.display = "flex";
+    masterDocKeyInput.focus();
+  }
+
+  function confirmMasterDocKey() {
+    if (masterDocKeyInput.value.trim() !== "getrobotics") {
+      masterDocKeyError.textContent =
+        "Invalid key! Only the instructor can upload or replace the master document.";
+      masterDocKeyInput.focus();
+      return;
+    }
+
+    isMasterDocAdminUnlocked = true;
+    masterDocKeyBox.style.display = "none";
+    masterDocKeyInput.value = "";
+    masterDocKeyError.textContent = "";
+    masterDocFileInput.click();
   }
 
   function openKeyGate() {
@@ -1405,8 +1426,6 @@ void loop() {
 
       keyGatePanel.style.display = "none";
       keyErrorMessage.style.display = "none";
-      adminModeUnlocked = true;
-      adminDocUploadPanel.style.display = "flex";
       editorPanel.style.display = "block";
       editorProjectBoard.textContent = `Editing: ${activeProject.title} — ${activeBoard === "arduino" ? "Arduino Uno Code" : "ESP32 Code"}`;
       editCodeTextarea.value = activeProject.code[activeBoard];
@@ -1553,7 +1572,6 @@ void loop() {
   }
 
   function closeProject() {
-    lockAdminMode();
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
@@ -1662,20 +1680,32 @@ void loop() {
   cancelKeyButton.addEventListener("click", () => {
     keyGatePanel.style.display = "none";
     keyErrorMessage.style.display = "none";
-    lockAdminMode();
     replaceButton.focus();
   });
   saveNewCodeButton.addEventListener("click", saveCodeOverride);
   resetDefaultCodeButton.addEventListener("click", resetCodeOverride);
   closeEditorButton.addEventListener("click", () => {
     editorPanel.style.display = "none";
-    lockAdminMode();
     replaceButton.focus();
   });
   replaceMasterDocButton.addEventListener("click", () => {
-    if (adminModeUnlocked) {
+    if (isMasterDocAdminUnlocked) {
       masterDocFileInput.click();
+    } else {
+      showMasterDocKeyPrompt();
     }
+  });
+  confirmMasterDocKeyButton.addEventListener("click", confirmMasterDocKey);
+  masterDocKeyInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      confirmMasterDocKey();
+    }
+  });
+  cancelMasterDocKeyButton.addEventListener("click", () => {
+    masterDocKeyBox.style.display = "none";
+    masterDocKeyInput.value = "";
+    masterDocKeyError.textContent = "";
   });
   masterDocFileInput.addEventListener("change", () => {
     const [file] = masterDocFileInput.files || [];

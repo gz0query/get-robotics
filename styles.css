@@ -370,6 +370,73 @@ a:focus-visible {
   color: #FCA5A5;
 }
 
+.master-doc-key-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(0, 240, 255, 0.24);
+  border-radius: 9px;
+  background: rgba(5, 8, 17, 0.62);
+}
+
+.master-doc-key-box input {
+  min-width: 0;
+  min-height: 40px;
+  flex: 1 1 180px;
+  padding: 9px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 7px;
+  background: #070B14;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.master-doc-key-box input:focus {
+  border-color: var(--accent-cyan);
+  outline: 2px solid rgba(0, 240, 255, 0.18);
+}
+
+.btn-confirm-doc-key,
+.btn-cancel-doc-key {
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  border-radius: 7px;
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.btn-cancel-doc-key {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.08);
+  color: #CBD5E1;
+}
+
+.btn-confirm-doc-key:hover {
+  background: rgba(0, 240, 255, 0.19);
+}
+
+.btn-cancel-doc-key:hover {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.master-doc-key-error {
+  flex: 1 0 100%;
+  color: #FCA5A5;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.master-doc-key-error:empty {
+  display: none;
+}
+
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
