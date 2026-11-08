@@ -1,3 +1,18 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBZS5JSKfClwCMHErjYoJ6dVJLTSyKLeuk",
+  authDomain: "clone-5ef88.firebaseapp.com",
+  projectId: "clone-5ef88",
+  storageBucket: "clone-5ef88.firebasestorage.app",
+  messagingSenderId: "739261013820",
+  appId: "1:739261013820:web:ab253671a834068a5c0839",
+  measurementId: "G-D6EKVSQX6F"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 (() => {
   "use strict";
 
@@ -822,6 +837,54 @@ void loop() {
 
   loadCustomCodes();
 
+  function applyCloudData(snapshot) {
+    snapshot.forEach((docSnap) => {
+      const projectId = aliases[docSnap.id] || docSnap.id;
+      const project = projects[projectId];
+      if (!project) {
+        return;
+      }
+
+      const cloudData = docSnap.data();
+      ["arduino", "esp32"].forEach((board) => {
+        const code = cloudData[board] ?? cloudData[`${board}Code`];
+        const wiring = cloudData[`${board}Wiring`];
+        if (typeof code === "string") {
+          project.code[board] = code;
+          customCodes[`${projectId}_${board}`] = {
+            projectId,
+            board,
+            code,
+            wiring: typeof wiring === "string" ? wiring : project.wiring[board]
+          };
+        }
+        if (typeof wiring === "string") {
+          project.wiring[board] = wiring;
+        }
+      });
+    });
+
+    try {
+      localStorage.setItem("getrobotics_custom_codes", JSON.stringify(customCodes));
+    } catch (error) {
+      console.error("Get Robotics: unable to cache cloud-synced project code.", error);
+    }
+
+    if (activeProject && activeProjectId) {
+      wiringBoxes.arduino.textContent = activeProject.wiring.arduino;
+      wiringBoxes.esp32.textContent = activeProject.wiring.esp32;
+      codeDisplay.textContent = activeProject.code[activeBoard];
+      if (editorPanel.style.display !== "none") {
+        editCodeTextarea.value = activeProject.code[activeBoard];
+        editWiringInput.value = activeProject.wiring[activeBoard];
+      }
+    }
+  }
+
+  onSnapshot(collection(db, 'robotics_codes'), applyCloudData, (error) => {
+    console.error("Get Robotics: Firestore code sync failed.", error);
+  });
+
   function makeBoardGuide(board) {
     const isEsp32 = board === "esp32";
     const title = isEsp32 ? "ESP32" : "ARDUINO UNO";
@@ -1056,24 +1119,25 @@ void loop() {
     }
   }
 
-  function saveCodeOverride() {
+  async function saveCodeOverride() {
     if (!activeProject || !activeProjectId) {
       return;
     }
 
-    const newCode = editCodeTextarea.value;
-    if (!newCode.trim()) {
+    const newCodeString = editCodeTextarea.value;
+    if (!newCodeString.trim()) {
       setReplaceCodeStatus("Code cannot be empty.", true);
       editCodeTextarea.focus();
       return;
     }
 
+    const boardType = activeBoard;
     const newWiring = editWiringInput.value.trim() || activeProject.wiring[activeBoard];
     const key = `${activeProjectId}_${activeBoard}`;
     const override = {
       projectId: activeProjectId,
       board: activeBoard,
-      code: newCode,
+      code: newCodeString,
       wiring: newWiring
     };
     const updatedOverrides = { ...customCodes, [key]: override };
@@ -1081,21 +1145,31 @@ void loop() {
     try {
       localStorage.setItem("getrobotics_custom_codes", JSON.stringify(updatedOverrides));
     } catch (error) {
-      console.error("Get Robotics: unable to save project code in this browser.", error);
-      setReplaceCodeStatus("Could not save this code in browser storage. Check available storage and try again.", true);
-      return;
+      console.error("Get Robotics: unable to cache project code in this browser.", error);
     }
 
     customCodes = updatedOverrides;
-    activeProject.code[activeBoard] = newCode;
+    activeProject.code[boardType] = newCodeString;
     activeProject.wiring[activeBoard] = newWiring;
     wiringBoxes[activeBoard].textContent = newWiring;
-    codeDisplay.textContent = newCode;
+    codeDisplay.textContent = newCodeString;
     editorPanel.style.display = "none";
-    setReplaceCodeStatus("Code replaced successfully! This browser will use the updated code.");
+    setReplaceCodeStatus("Saving to cloud...");
+    try {
+      await setDoc(doc(db, 'robotics_codes', String(activeProjectId)), {
+        [boardType]: newCodeString,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      setReplaceCodeStatus("Saved live for all students!");
+    } catch (error) {
+      console.error("Get Robotics: unable to sync project code to Firestore.", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setReplaceCodeStatus("Cloud save failed. Check the connection and Firestore rules.", true);
+      window.alert(`Cloud save failed: ${errorMessage}`);
+    }
   }
 
-  function resetCodeOverride() {
+  async function resetCodeOverride() {
     if (!activeProject || !activeProjectId) {
       return;
     }
@@ -1123,7 +1197,17 @@ void loop() {
     wiringBoxes[activeBoard].textContent = activeProject.wiring[activeBoard];
     codeDisplay.textContent = activeProject.code[activeBoard];
     editorPanel.style.display = "none";
-    setReplaceCodeStatus("Factory default code and wiring restored for this browser.");
+    try {
+      await setDoc(doc(db, 'robotics_codes', String(activeProjectId)), {
+        [activeBoard]: activeProject.code[activeBoard],
+        [`${activeBoard}Wiring`]: activeProject.wiring[activeBoard],
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      setReplaceCodeStatus("Factory default code and wiring restored across devices.");
+    } catch (error) {
+      console.error("Get Robotics: unable to sync the project reset to Firestore.", error);
+      setReplaceCodeStatus("Code was reset in this browser, but cloud sync failed. Check the connection and Firestore rules.", true);
+    }
   }
 
   function selectBoard(board) {
