@@ -66,6 +66,45 @@
   </section>
 
   <main class="projects-wrapper">
+    <section class="master-doc-card" aria-labelledby="master-doc-title">
+      <div class="master-doc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5h16l9 9v29H12V5Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" />
+          <path d="M28 5v10h9M18 24h13M18 30h13M18 36h9" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M6 13v30h23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="master-doc-content">
+        <p class="master-doc-eyebrow">ROBOTICS LAB RESOURCE</p>
+        <h2 id="master-doc-title">Master Project Codes Document (All Projects)</h2>
+        <p class="master-doc-subtitle">Download the complete document containing all Arduino Uno and ESP32 project
+          codes for offline use.</p>
+        <p class="master-doc-info" id="master-doc-info" aria-live="polite">No document uploaded yet</p>
+      </div>
+      <div class="master-doc-actions">
+        <button type="button" class="btn-download-master-doc" id="btn-download-master-doc" disabled>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 3v12m0 0 5-5m-5 5-5-5M4 17v3h16v-3" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span id="master-doc-download-text">Download Master Docs File</span>
+        </button>
+        <div class="admin-doc-upload-panel" id="admin-doc-upload-panel" style="display: none;">
+          <input type="file" id="input-master-doc-file"
+            accept=".docx,.doc,.pdf,.txt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
+            style="display: none;">
+          <button type="button" class="btn-replace-master-doc" id="btn-replace-master-doc">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 16V4m0 0L7 9m5-5 5 5M4 15v5h16v-5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Upload / Replace Docs File</span>
+          </button>
+          <p class="master-doc-upload-status" id="master-doc-upload-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
     <div class="projects-grid" id="projects-grid">
       <article class="project-card" data-project-id="stick">
         <div class="card-image-box">
@@ -167,6 +206,28 @@
           </ul>
           <p class="project-description">Multi-LED breadboard chaser and pattern circuit that sequences, pulses, and
             flashes LED light bulbs through digital GPIO output pins.</p>
+          <button type="button" class="btn-project">Select Board &amp; Get Code <span
+              aria-hidden="true">→</span></button>
+        </div>
+      </article>
+
+      <article class="project-card" data-project-id="smart-waste-bin">
+        <div class="card-image-box">
+          <img
+            src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&amp;fit=crop&amp;w=800&amp;q=80"
+            alt="Smart Waste Bin ultrasonic sensor and electronics">
+        </div>
+        <div class="project-card-content">
+          <p class="project-number">PROJECT 06</p>
+          <h2>Smart Waste Bin</h2>
+          <ul class="hardware-tags" aria-label="Hardware">
+            <li>Ultrasonic HC-SR04</li>
+            <li>Servo Motor</li>
+            <li>Arduino / ESP32</li>
+          </ul>
+          <p class="project-description">An automated hands-free smart trash bin powered by an ultrasonic sensor and a
+            servo motor. When a person's hand approaches within range, the ultrasonic sensor detects the distance and
+            signals the servo motor to automatically open the bin lid, then closes it after a delay.</p>
           <button type="button" class="btn-project">Select Board &amp; Get Code <span
               aria-hidden="true">→</span></button>
         </div>
@@ -281,9 +342,9 @@
       </div>
       <p class="tour-welcome-badge">GET ROBOTICS INTERACTIVE LAB GUIDE</p>
       <h2 id="tour-welcome-title">Welcome to Get Robotics</h2>
-      <p class="tour-welcome-description">Welcome to getrobotics.com! Here you will build, wire, and test 5 real-world
+      <p class="tour-welcome-description">Welcome to getrobotics.com! Here you will build, wire, and test 6 real-world
         DIY robotics projects—the Smart Blind Walking Stick, Autonomous Motor Car, Wi-Fi Controlled Car, Laser Obstacle
-        Detector, and Breadboard Multi-LED Array—using Arduino Uno and ESP32 brains.</p>
+        Detector, Breadboard Multi-LED Array, and Smart Waste Bin—using Arduino Uno and ESP32 brains.</p>
       <label for="tour-student-name-input">Enter your first name below so our Robotics Guide can walk you through how to
         get and copy your project code:</label>
       <input type="text" id="tour-student-name-input" class="tour-name-input"

@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBZS5JSKfClwCMHErjYoJ6dVJLTSyKLeuk",
@@ -704,6 +704,85 @@ void loop() {
   }
 }`
       }
+    },
+    "smart-waste-bin": {
+      title: "Smart Waste Bin",
+      filename: "smart_waste_bin",
+      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      wiring: {
+        arduino: "HC-SR04: TRIG → D9, ECHO → D10; servo signal → D6. Power the sensor and servo appropriately and connect grounds.",
+        esp32: "HC-SR04: TRIG → GPIO 5, ECHO → GPIO 18 through a voltage divider; servo signal → GPIO 13. Power the sensor and servo appropriately and connect grounds."
+      },
+      code: {
+        arduino: String.raw`// Smart Waste Bin - Arduino Uno Code
+#include <Servo.h>
+
+Servo lidServo;
+const int trigPin = 9;
+const int echoPin = 10;
+const int servoPin = 6;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  lidServo.attach(servoPin);
+  lidServo.write(0); // Lid closed initially
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  if (distance > 0 && distance <= 25) {
+    lidServo.write(90); // Open lid
+    delay(3000);        // Keep open for 3 seconds
+    lidServo.write(0);  // Close lid
+    delay(1000);
+  }
+  delay(100);
+}`,
+        esp32: String.raw`// Smart Waste Bin - ESP32 Code
+#include <ESP32Servo.h>
+
+Servo lidServo;
+const int trigPin = 5;
+const int echoPin = 18;
+const int servoPin = 13;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  lidServo.attach(servoPin);
+  lidServo.write(0); // Lid closed initially
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  if (distance > 0 && distance <= 25) {
+    lidServo.write(90); // Open lid
+    delay(3000);        // Keep open for 3 seconds
+    lidServo.write(0);  // Close lid
+    delay(1000);
+  }
+  delay(100);
+}`
+      }
     }
   };
 
@@ -738,6 +817,13 @@ void loop() {
   const resetDefaultCodeButton = document.getElementById("btn-reset-default-code");
   const closeEditorButton = document.getElementById("btn-close-editor");
   const replaceCodeStatus = document.getElementById("replace-code-status");
+  const masterDocInfo = document.getElementById("master-doc-info");
+  const downloadMasterDocButton = document.getElementById("btn-download-master-doc");
+  const masterDocDownloadText = document.getElementById("master-doc-download-text");
+  const adminDocUploadPanel = document.getElementById("admin-doc-upload-panel");
+  const replaceMasterDocButton = document.getElementById("btn-replace-master-doc");
+  const masterDocFileInput = document.getElementById("input-master-doc-file");
+  const masterDocUploadStatus = document.getElementById("master-doc-upload-status");
   const replayTourButton = document.getElementById("btn-replay-tour");
   const studentGreetingBadge = document.getElementById("student-greeting-badge");
   const tourWelcomeOverlay = document.getElementById("tour-welcome-overlay");
@@ -772,7 +858,10 @@ void loop() {
     !verifyKeyButton || !cancelKeyButton || !keyErrorMessage ||
     !editorPanel || !editorProjectBoard || !editWiringInput ||
     !editCodeTextarea || !saveNewCodeButton || !resetDefaultCodeButton ||
-    !closeEditorButton || !replaceCodeStatus || !replayTourButton ||
+    !closeEditorButton || !replaceCodeStatus || !masterDocInfo ||
+    !downloadMasterDocButton || !masterDocDownloadText || !adminDocUploadPanel ||
+    !replaceMasterDocButton || !masterDocFileInput || !masterDocUploadStatus ||
+    !replayTourButton ||
     !studentGreetingBadge || !tourWelcomeOverlay || !tourStudentNameInput ||
     !tourNameError || !beginTourButton || !skipWelcomeButton ||
     !tourStepCard || !tourStepCounter || !tourStepTitle || !tourStepBody ||
@@ -794,6 +883,8 @@ void loop() {
   let studentName = "";
   let tourStepIndex = 0;
   let spotlightedElement = null;
+  let adminModeUnlocked = false;
+  let masterDocMetadata = null;
 
   function loadCustomCodes() {
     try {
@@ -885,6 +976,207 @@ void loop() {
     console.error("Get Robotics: Firestore code sync failed.", error);
   });
 
+  function formatMasterDocSize(fileSize) {
+    return fileSize >= 1024 * 1024
+      ? `${(fileSize / (1024 * 1024)).toFixed(1)} MB`
+      : `${(fileSize / 1024).toFixed(1)} KB`;
+  }
+
+  function formatMasterDocDate(updatedAt) {
+    const updatedDate = new Date(updatedAt);
+    return Number.isNaN(updatedDate.getTime())
+      ? "Unknown date"
+      : new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(updatedDate);
+  }
+
+  function setMasterDocUploadStatus(message, isError = false) {
+    masterDocUploadStatus.textContent = message;
+    masterDocUploadStatus.classList.toggle("master-doc-upload-status-error", isError);
+  }
+
+  function applyMasterDocMetadata(metaSnap) {
+    if (!metaSnap.exists()) {
+      masterDocMetadata = null;
+      masterDocInfo.textContent = "No document uploaded yet";
+      downloadMasterDocButton.disabled = true;
+      return;
+    }
+
+    const metadata = metaSnap.data();
+    if (
+      typeof metadata.fileName !== "string" ||
+      typeof metadata.fileSize !== "number" ||
+      !Number.isFinite(metadata.fileSize) ||
+      !Number.isInteger(metadata.totalChunks) ||
+      metadata.totalChunks < 1
+    ) {
+      masterDocMetadata = null;
+      masterDocInfo.textContent = "Document metadata is invalid.";
+      downloadMasterDocButton.disabled = true;
+      console.error("Get Robotics: the Master Docs metadata is invalid.");
+      return;
+    }
+
+    masterDocMetadata = metadata;
+    masterDocInfo.textContent =
+      `${metadata.fileName} · ${formatMasterDocSize(metadata.fileSize)} · Updated ${formatMasterDocDate(metadata.updatedAt)}`;
+    downloadMasterDocButton.disabled = false;
+  }
+
+  onSnapshot(
+    doc(db, "robotics_master_doc", "metadata"),
+    applyMasterDocMetadata,
+    (error) => {
+      masterDocMetadata = null;
+      masterDocInfo.textContent = "Unable to load document status.";
+      downloadMasterDocButton.disabled = true;
+      console.error("Get Robotics: Master Docs metadata sync failed.", error);
+    }
+  );
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result !== "string") {
+          reject(new TypeError("The selected file could not be read as a data URL."));
+          return;
+        }
+        resolve(reader.result);
+      };
+      reader.onerror = () => reject(reader.error || new Error("The selected file could not be read."));
+      reader.onabort = () => reject(new Error("Reading the selected file was cancelled."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadMasterDoc(file) {
+    if (!adminModeUnlocked || !file) {
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      window.alert("Please upload a file smaller than 5 MB.");
+      return;
+    }
+
+    replaceMasterDocButton.disabled = true;
+    setMasterDocUploadStatus("Reading file...");
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const CHUNK_SIZE = 600000;
+      const chunks = [];
+      for (let offset = 0; offset < dataUrl.length; offset += CHUNK_SIZE) {
+        chunks.push(dataUrl.slice(offset, offset + CHUNK_SIZE));
+      }
+
+      setMasterDocUploadStatus("Uploading to cloud...");
+      const metadataRef = doc(db, "robotics_master_doc", "metadata");
+      const previousMetadataSnap = await getDoc(metadataRef);
+      const previousTotalChunks = previousMetadataSnap.exists()
+        ? previousMetadataSnap.data().totalChunks
+        : 0;
+
+      for (let index = 0; index < chunks.length; index += 1) {
+        await setDoc(doc(db, "robotics_master_doc_chunks", `chunk_${index}`), {
+          index,
+          data: chunks[index]
+        });
+      }
+
+      await setDoc(metadataRef, {
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type || "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        totalChunks: chunks.length,
+        updatedAt: new Date().toISOString()
+      });
+
+      let cleanupFailed = false;
+      if (
+        Number.isInteger(previousTotalChunks) &&
+        previousTotalChunks > chunks.length &&
+        previousTotalChunks <= 1000
+      ) {
+        try {
+          for (let index = chunks.length; index < previousTotalChunks; index += 1) {
+            await deleteDoc(doc(db, "robotics_master_doc_chunks", `chunk_${index}`));
+          }
+        } catch (error) {
+          cleanupFailed = true;
+          console.error("Get Robotics: unable to remove superseded Master Docs chunks.", error);
+        }
+      }
+
+      setMasterDocUploadStatus(
+        cleanupFailed
+          ? "Master Docs file replaced live for all students! Old unused chunks could not be removed."
+          : "Master Docs file replaced live for all students!",
+        cleanupFailed
+      );
+    } catch (error) {
+      console.error("Get Robotics: unable to upload the Master Docs file.", error);
+      setMasterDocUploadStatus("Upload failed. Check the connection and Firestore rules.", true);
+    } finally {
+      replaceMasterDocButton.disabled = false;
+      masterDocFileInput.value = "";
+    }
+  }
+
+  async function downloadMasterDoc() {
+    if (!masterDocMetadata || downloadMasterDocButton.disabled) {
+      return;
+    }
+
+    const metadata = masterDocMetadata;
+    downloadMasterDocButton.disabled = true;
+    masterDocDownloadText.textContent = "Preparing download...";
+    try {
+      const chunkSnapshot = await getDocs(collection(db, "robotics_master_doc_chunks"));
+      const chunks = chunkSnapshot.docs
+        .map((chunkDoc) => chunkDoc.data())
+        .filter((chunk) => Number.isInteger(chunk.index) && chunk.index >= 0 && chunk.index < metadata.totalChunks)
+        .sort((left, right) => left.index - right.index);
+
+      if (
+        chunks.length !== metadata.totalChunks ||
+        chunks.some((chunk, index) => chunk.index !== index || typeof chunk.data !== "string")
+      ) {
+        throw new Error("The uploaded document is incomplete in cloud storage.");
+      }
+
+      const dataUrl = chunks.map((chunk) => chunk.data).join("");
+      const dataUrlMatch = /^data:([^;,]+)?;base64,([\s\S]*)$/.exec(dataUrl);
+      if (!dataUrlMatch) {
+        throw new Error("The uploaded document data is invalid.");
+      }
+
+      const binaryData = atob(dataUrlMatch[2]);
+      const bytes = new Uint8Array(binaryData.length);
+      for (let index = 0; index < binaryData.length; index += 1) {
+        bytes[index] = binaryData.charCodeAt(index);
+      }
+      const blob = new Blob([bytes], { type: dataUrlMatch[1] || metadata.mimeType });
+      if (blob.size !== metadata.fileSize) {
+        throw new Error("The downloaded document size does not match its metadata.");
+      }
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = metadata.fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    } catch (error) {
+      console.error("Get Robotics: unable to download the Master Docs file.", error);
+      window.alert("Unable to download the Master Docs file. Please check your connection and try again.");
+    } finally {
+      masterDocDownloadText.textContent = "Download Master Docs File";
+      downloadMasterDocButton.disabled = !masterDocMetadata;
+    }
+  }
+
   function makeBoardGuide(board) {
     const isEsp32 = board === "esp32";
     const title = isEsp32 ? "ESP32" : "ARDUINO UNO";
@@ -952,8 +1244,8 @@ void loop() {
     const name = studentName;
     const steps = [
       {
-        title: `1. Your 5 Robotics Lab Projects, ${name}`,
-        body: `Welcome to Get Robotics, ${name}! On this page are the 5 hardware projects you are going to build: (1) Smart Blind Walking Stick, (2) Autonomous Motor Car, (3) Wi-Fi Controlled Car, (4) Laser Obstacle Detector, and (5) Breadboard Multi-LED Array.`,
+        title: `1. Your 6 Robotics Lab Projects, ${name}`,
+        body: `Welcome to Get Robotics, ${name}! On this page are the 6 hardware projects you are going to build: Smart Blind Walking Stick, Autonomous Motor Car, Wi-Fi Controlled Car, Laser Obstacle Detector, Breadboard Multi-LED Array, and Smart Waste Bin.`,
         action: () => {
           if (modal.style.display !== "none") {
             closeProject();
@@ -1069,7 +1361,7 @@ void loop() {
     const hashHex = Array.from(new Uint8Array(digest))
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
-    return hashHex === "a7c008c1eddcab3f52e29c6959857935c5bdf1dce34ab0196e22f6552e2620d0";
+    return hashHex === "03fbc9106caf1f5ab73da7c421bcb828cee173a898de4cada142db185a89fd6c";
   }
 
   function setReplaceCodeStatus(message, isError = false) {
@@ -1081,6 +1373,12 @@ void loop() {
     keyGatePanel.style.display = "none";
     editorPanel.style.display = "none";
     keyErrorMessage.style.display = "none";
+  }
+
+  function lockAdminMode() {
+    adminModeUnlocked = false;
+    adminDocUploadPanel.style.display = "none";
+    masterDocFileInput.value = "";
   }
 
   function openKeyGate() {
@@ -1107,6 +1405,8 @@ void loop() {
 
       keyGatePanel.style.display = "none";
       keyErrorMessage.style.display = "none";
+      adminModeUnlocked = true;
+      adminDocUploadPanel.style.display = "flex";
       editorPanel.style.display = "block";
       editorProjectBoard.textContent = `Editing: ${activeProject.title} — ${activeBoard === "arduino" ? "Arduino Uno Code" : "ESP32 Code"}`;
       editCodeTextarea.value = activeProject.code[activeBoard];
@@ -1253,6 +1553,7 @@ void loop() {
   }
 
   function closeProject() {
+    lockAdminMode();
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
@@ -1361,14 +1662,28 @@ void loop() {
   cancelKeyButton.addEventListener("click", () => {
     keyGatePanel.style.display = "none";
     keyErrorMessage.style.display = "none";
+    lockAdminMode();
     replaceButton.focus();
   });
   saveNewCodeButton.addEventListener("click", saveCodeOverride);
   resetDefaultCodeButton.addEventListener("click", resetCodeOverride);
   closeEditorButton.addEventListener("click", () => {
     editorPanel.style.display = "none";
+    lockAdminMode();
     replaceButton.focus();
   });
+  replaceMasterDocButton.addEventListener("click", () => {
+    if (adminModeUnlocked) {
+      masterDocFileInput.click();
+    }
+  });
+  masterDocFileInput.addEventListener("change", () => {
+    const [file] = masterDocFileInput.files || [];
+    if (file) {
+      uploadMasterDoc(file);
+    }
+  });
+  downloadMasterDocButton.addEventListener("click", downloadMasterDoc);
   replayTourButton.addEventListener("click", openTourWelcome);
   beginTourButton.addEventListener("click", beginGuidedTour);
   tourStudentNameInput.addEventListener("keydown", (event) => {
