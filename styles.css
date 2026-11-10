@@ -1,15 +1,19 @@
 :root {
-  --bg-main: #070B14;
-  --bg-card: #111827;
-  --bg-modal: #0F172A;
-  --bg-terminal: #050811;
-  --accent-cyan: #00F0FF;
-  --accent-blue: #00A8E1;
-  --accent-esp: #A855F7;
-  --accent-green: #10B981;
-  --text-primary: #F8FAFC;
-  --text-muted: #94A3B8;
-  --border-glow: rgba(0, 240, 255, 0.22);
+  --bg-main: #F5F7FA;
+  --bg-card: #FFFFFF;
+  --bg-modal: #FFFFFF;
+  --bg-terminal: #071120;
+  --accent-cyan: #1E9E3E;
+  --accent-blue: #158030;
+  --accent-esp: #1E9E3E;
+  --accent-green: #1E9E3E;
+  --text-primary: #0A1D3B;
+  --text-muted: #526071;
+  --border-glow: #E5E9F0;
+  --brand-navy: #08152C;
+  --brand-navy-deep: #050E1D;
+  --brand-green-light: #E8F7EC;
+  --brand-eyebrow: #22C55E;
 }
 
 *,
@@ -1493,4 +1497,448 @@ a:focus-visible {
   .tour-spotlight {
     animation: none !important;
   }
+}
+
+body {
+  background-color: var(--bg-main);
+  background-image: none;
+  color: var(--text-primary);
+}
+
+.site-header {
+  border-bottom: 1px solid #E5E9F0;
+  background: #FFFFFF;
+  backdrop-filter: none;
+}
+
+.brand {
+  color: #0A1D3B;
+}
+
+.brand-icon,
+.brand-domain {
+  color: #1E9E3E;
+}
+
+.btn-tour-trigger {
+  border-color: #CBD5E1;
+  background: #FFFFFF;
+  color: #0A1D3B;
+  font-weight: 700;
+}
+
+.btn-tour-trigger:hover {
+  border-color: #1E9E3E;
+  background: #E8F7EC;
+  color: #158030;
+  box-shadow: none;
+}
+
+.student-greeting-badge,
+.ecosystem-tags li {
+  border-color: #B9E6C4;
+  background: #E8F7EC;
+  color: #158030;
+}
+
+.quick-instruction {
+  border-color: #E2E8F0;
+  color: #526071;
+}
+
+.quick-instruction span {
+  color: #1E9E3E;
+}
+
+.hero-section {
+  max-width: none;
+  padding: 48px 24px 44px;
+  background: linear-gradient(135deg, #050E1D 0%, #0A1D3B 100%);
+  color: #FFFFFF;
+}
+
+.hero-subtitle,
+.master-doc-eyebrow,
+.tour-welcome-badge {
+  border-color: rgba(34, 197, 94, 0.32);
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hero-section h1 {
+  background: none;
+  color: #FFFFFF;
+  -webkit-text-fill-color: currentColor;
+}
+
+.hero-section h1 .hero-heading-highlight {
+  color: #22C55E;
+  -webkit-text-fill-color: currentColor;
+}
+
+.hero-description {
+  color: #E2E8F0;
+}
+
+.projects-wrapper {
+  color: #0A1D3B;
+}
+
+.master-doc-card,
+.project-card {
+  border: 1px solid #E2E8F0;
+  border-top: 4px solid #1E9E3E;
+  border-radius: 14px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(10, 29, 59, 0.06);
+}
+
+.master-doc-card {
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+.master-doc-icon {
+  border-color: #B9E6C4;
+  background: #E8F7EC;
+  color: #1E9E3E;
+}
+
+.master-doc-content h2,
+.project-card h2 {
+  color: #0A1D3B;
+}
+
+.master-doc-subtitle,
+.master-doc-upload-status,
+.project-description {
+  color: #526071;
+}
+
+.master-doc-info {
+  border-color: #E2E8F0;
+  background: #F5F7FA;
+  color: #526071;
+}
+
+.btn-download-master-doc:not(:disabled),
+.btn-confirm-doc-key,
+.btn-project,
+.btn-copy-code,
+.btn-save-code,
+.btn-tour-primary,
+.board-card.active .btn-select-board {
+  border: 1px solid #1E9E3E;
+  border-radius: 999px;
+  background: #1E9E3E;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.btn-download-master-doc:not(:disabled):hover,
+.btn-confirm-doc-key:hover,
+.btn-project:hover,
+.btn-copy-code:hover,
+.btn-save-code:hover,
+.btn-tour-primary:hover,
+.board-card.active .btn-select-board:hover {
+  border-color: #158030;
+  background: #158030;
+  color: #FFFFFF;
+  box-shadow: none;
+}
+
+.btn-download-master-doc:disabled {
+  border-color: #CBD5E1;
+  background: #E2E8F0;
+  color: #526071;
+}
+
+.btn-replace-master-doc,
+.btn-cancel-doc-key,
+.btn-select-board,
+.btn-replace-code,
+.key-gate-controls button,
+.editor-actions button,
+.btn-tour-secondary,
+.btn-tour-nav,
+.btn-close-modal {
+  border: 1.5px solid #CBD5E1;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #0A1D3B;
+  font-weight: 700;
+}
+
+.btn-replace-master-doc:hover,
+.btn-cancel-doc-key:hover,
+.btn-select-board:hover,
+.btn-replace-code:hover,
+.key-gate-controls button:hover,
+.editor-actions button:hover,
+.btn-tour-secondary:hover,
+.btn-tour-nav:hover:not(:disabled),
+.btn-close-modal:hover {
+  border-color: #1E9E3E;
+  background: #E8F7EC;
+  color: #158030;
+}
+
+.btn-cancel-doc-key,
+.editor-actions .btn-cancel-code,
+.key-gate-controls #btn-cancel-key {
+  color: #526071;
+}
+
+.project-card:hover {
+  border-color: #1E9E3E;
+  border-top-color: #1E9E3E;
+  box-shadow: 0 12px 30px rgba(10, 29, 59, 0.12);
+}
+
+.card-image-box {
+  border-bottom-color: #E2E8F0;
+  background: #F5F7FA;
+}
+
+.project-number,
+.board-badge {
+  color: #158030;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hardware-tags li {
+  border-color: #B9E6C4;
+  background: #E8F7EC;
+  color: #158030;
+}
+
+.modal-overlay,
+.tour-welcome-overlay {
+  background: rgba(5, 14, 29, 0.78);
+}
+
+.modal-container {
+  border-color: #E2E8F0;
+  background: #FFFFFF;
+  box-shadow: 0 24px 60px rgba(10, 29, 59, 0.2);
+}
+
+.modal-heading h2,
+.board-card h3,
+.key-gate-panel > label,
+.editor-heading {
+  color: #0A1D3B;
+}
+
+.modal-heading p,
+.board-subtext {
+  color: #526071;
+}
+
+.btn-close-modal {
+  color: #526071;
+}
+
+.board-card {
+  border-color: #E2E8F0;
+  background: #FFFFFF;
+}
+
+.board-card.active,
+.board-card[data-board="esp32"].active {
+  border-color: #1E9E3E;
+  background: #E8F7EC;
+  box-shadow: 0 0 0 2px rgba(30, 158, 62, 0.12);
+}
+
+.board-card[data-board="esp32"] .board-badge {
+  color: #158030;
+}
+
+.wiring-box {
+  border-left-color: #1E9E3E;
+  background: #F5F7FA;
+  color: #0A1D3B;
+}
+
+.board-card[data-board="esp32"] .wiring-box {
+  border-left-color: #1E9E3E;
+}
+
+.board-card[data-board="esp32"] .btn-select-board {
+  border-color: #CBD5E1;
+  background: #FFFFFF;
+  color: #0A1D3B;
+}
+
+.board-card[data-board="esp32"].active .btn-select-board {
+  border-color: #1E9E3E;
+  background: #1E9E3E;
+  color: #FFFFFF;
+}
+
+.code-terminal-section {
+  border-color: #050E1D;
+  background: #071120;
+}
+
+.terminal-header {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: #050E1D;
+}
+
+.terminal-info {
+  color: #FFFFFF;
+}
+
+#active-board-badge {
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #22C55E;
+}
+
+.code-pre {
+  background: #071120;
+  color: #E2E8F0;
+}
+
+.btn-copy-code {
+  border-radius: 8px;
+}
+
+.btn-copy-code.copied {
+  background: #158030 !important;
+}
+
+.key-gate-panel,
+.live-code-editor-panel {
+  border-color: #E2E8F0;
+  background: #F5F7FA;
+}
+
+.key-gate-controls input,
+#edit-wiring-input,
+#edit-code-textarea,
+.master-doc-key-box input,
+.tour-name-input {
+  border-color: #CBD5E1;
+  background: #FFFFFF;
+  color: #0A1D3B;
+}
+
+.key-gate-controls input:focus,
+#edit-wiring-input:focus,
+#edit-code-textarea:focus,
+.master-doc-key-box input:focus,
+.tour-name-input:focus {
+  border-color: #1E9E3E;
+  outline-color: rgba(30, 158, 62, 0.18);
+}
+
+.editor-actions .btn-save-code {
+  background: #1E9E3E;
+  color: #FFFFFF;
+}
+
+.editor-actions .btn-reset-code {
+  border-color: #CBD5E1;
+  color: #0A1D3B;
+}
+
+.editor-actions .btn-reset-code:hover {
+  border-color: #1E9E3E;
+  background: #E8F7EC;
+  color: #158030;
+}
+
+.replace-code-status {
+  border-color: rgba(30, 158, 62, 0.3);
+  background: #E8F7EC;
+  color: #158030;
+}
+
+.tour-welcome-card,
+.tour-step-card {
+  border-color: #1E9E3E;
+  background: #08152C;
+  box-shadow: 0 20px 50px rgba(5, 14, 29, 0.45);
+}
+
+.tour-robot-avatar {
+  color: #1E9E3E;
+  filter: drop-shadow(0 0 12px rgba(30, 158, 62, 0.45));
+}
+
+.tour-robot-avatar svg [stroke],
+.tour-robot-avatar svg [fill] {
+  stroke: #1E9E3E;
+  fill: #1E9E3E;
+}
+
+.tour-welcome-card h2,
+.tour-step-card h2 {
+  color: #FFFFFF;
+}
+
+.tour-welcome-description,
+.tour-welcome-card label,
+.tour-step-card > p {
+  color: #E2E8F0;
+}
+
+.tour-name-input {
+  color-scheme: light;
+}
+
+.btn-tour-primary,
+.tour-step-navigation .btn-tour-primary {
+  border-color: #1E9E3E;
+  background: #1E9E3E;
+  color: #FFFFFF;
+}
+
+.btn-tour-secondary,
+.btn-tour-nav {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #FFFFFF;
+}
+
+.btn-tour-secondary:hover,
+.btn-tour-nav:hover:not(:disabled) {
+  border-color: #1E9E3E;
+  background: rgba(30, 158, 62, 0.12);
+  color: #22C55E;
+}
+
+.tour-step-guide-brand,
+.tour-step-counter {
+  color: #22C55E;
+}
+
+.tour-step-counter {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.tour-spotlight {
+  outline-color: #1E9E3E !important;
+  box-shadow: 0 0 28px rgba(30, 158, 62, 0.45) !important;
+}
+
+@keyframes tour-spotlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(30, 158, 62, 0.34) !important;
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(30, 158, 62, 0.62) !important;
+  }
+}
+
+.site-footer {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  background: #08152C;
+  color: #FFFFFF;
 }
