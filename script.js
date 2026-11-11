@@ -20,7 +20,7 @@ const db = getFirestore(app);
     stick: {
       title: "Smart Blind Walking Stick",
       filename: "smart_blind_walking_stick",
-      image: "https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=800&q=80",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/HC_SR04_Ultrasonic_Module.jpg?width=800",
       wiring: {
         arduino: "HC-SR04: TRIG → D9, ECHO → D10; buzzer + → D8, − → GND. Sensor VCC → 5V, GND → GND.",
         esp32: "HC-SR04: TRIG → GPIO 5, ECHO → GPIO 18 (use a voltage divider on ECHO); buzzer signal → GPIO 19. Power sensor and buzzer appropriately; share GND."
@@ -131,7 +131,7 @@ void loop() {
     "motor-car": {
       title: "Autonomous Motor Robot Car",
       filename: "autonomous_motor_robot_car",
-      image: "https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&w=800&q=80",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Arduino_Robot_Top.jpg?width=800",
       wiring: {
         arduino: "L298N: ENA → D5, IN1 → D6, IN2 → D7, IN3 → D8, IN4 → D9, ENB → D10. HC-SR04: TRIG → A0, ECHO → A1. Join controller and driver grounds.",
         esp32: "L298N: IN1 → GPIO 26, IN2 → GPIO 27, IN3 → GPIO 14, IN4 → GPIO 12; keep ENA/ENB enable jumpers installed. HC-SR04: TRIG → GPIO 5, ECHO → GPIO 18 through a voltage divider. Use a motor supply and common GND."
@@ -318,7 +318,7 @@ void loop() {
     "wifi-car": {
       title: "Wi-Fi Controlled Robot Car",
       filename: "wifi_controlled_robot_car",
-      image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Bluetooth_Arduino_Car.jpg?width=800",
       wiring: {
         arduino: "L298N: ENA → D5, IN1 → D6, IN2 → D7, IN3 → D8, IN4 → D9, ENB → D10. HC-05/HC-06 TX → D2, RX ← D3 (use a divider on module RX); share GND.",
         esp32: "L298N: IN1 → GPIO 26, IN2 → GPIO 27, IN3 → GPIO 14, IN4 → GPIO 12; keep ENA/ENB enable jumpers installed. Power motors separately and join grounds. Join the GetRobotics_Car Wi-Fi network."
@@ -553,7 +553,7 @@ void loop() {
     laser: {
       title: "Laser Obstacle Detector",
       filename: "laser_obstacle_detector",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Laser_Diode_Module.jpg?width=800",
       wiring: {
         arduino: "KY-008 signal → D7; LDR voltage-divider output → A0; buzzer + → D8; alarm LED anode through a resistor → D13. Power the sensor and share GND.",
         esp32: "Laser signal → GPIO 23; LDR voltage-divider output → GPIO 34 (ADC); buzzer signal → GPIO 19; alarm LED anode through a resistor → GPIO 2. Keep ESP32 inputs at 3.3V."
@@ -619,7 +619,7 @@ void loop() {
     leds: {
       title: "Breadboard Multi-LED Array",
       filename: "breadboard_multi_led_array",
-      image: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=800&q=80",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/RGB_LED_mounted_over_a_breadboard.jpg?width=800",
       wiring: {
         arduino: "Connect each LED anode through its own 220Ω resistor to D2, D3, D4, D5, or D6. Connect all cathodes to GND; use a shared breadboard ground rail.",
         esp32: "Connect each LED anode through its own 220Ω resistor to GPIO 13, 12, 14, 27, or 26. Connect all cathodes to GND; ESP32 GPIO is 3.3V."
@@ -708,7 +708,7 @@ void loop() {
     "smart-waste-bin": {
       title: "Smart Waste Bin",
       filename: "smart_waste_bin",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Servo_and_arduino.jpg?width=800",
       wiring: {
         arduino: "HC-SR04: TRIG → D9, ECHO → D10; servo signal → D6. Power the sensor and servo appropriately and connect grounds.",
         esp32: "HC-SR04: TRIG → GPIO 5, ECHO → GPIO 18 through a voltage divider; servo signal → GPIO 13. Power the sensor and servo appropriately and connect grounds."
@@ -783,6 +783,291 @@ void loop() {
   delay(100);
 }`
       }
+    },
+    "ultrasonic-alarm": {
+      title: "Ultrasonic Alarm Code",
+      filename: "ultrasonic_alarm_code",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Arduino_UNO_%2B_HC-SR04_%2B_HC_05_%2B_breadboard_-_side_view_00.jpg?width=800",
+      wiring: {
+        arduino: "HC-SR04: TRIG → D9, ECHO → D10; buzzer → D8; LED (+) → D7, GND → GND. Sensor VCC → 5V and connect common ground.",
+        esp32: "HC-SR04: TRIG → GPIO 5, ECHO → GPIO 18; buzzer → GPIO 19; LED → GPIO 2. Use a voltage divider on ECHO and share the common ground."
+      },
+      code: {
+        arduino: String.raw`// Ultrasonic Alarm Code - Arduino Uno
+const int trigPin = 9;
+const int echoPin = 10;
+const int buzzerPin = 8;
+const int ledPin = 7;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 0 && distance <= 30) {
+    digitalWrite(ledPin, HIGH);
+    tone(buzzerPin, 1000);
+    delay(150);
+    digitalWrite(ledPin, LOW);
+    noTone(buzzerPin);
+    delay(150);
+  } else {
+    digitalWrite(ledPin, LOW);
+    noTone(buzzerPin);
+    delay(100);
+  }
+}`,
+        esp32: String.raw`// Ultrasonic Alarm Code - ESP32
+const int trigPin = 5;
+const int echoPin = 18;
+const int buzzerPin = 19;
+const int ledPin = 2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 0 && distance <= 30) {
+    digitalWrite(ledPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
+    delay(150);
+    digitalWrite(ledPin, LOW);
+    digitalWrite(buzzerPin, LOW);
+    delay(150);
+  } else {
+    digitalWrite(ledPin, LOW);
+    digitalWrite(buzzerPin, LOW);
+    delay(100);
+  }
+}`
+      }
+    },
+    "keypad-smart-lock": {
+      title: "Keypad Smart Lock (Tinkercad)",
+      filename: "keypad_smart_lock_tinkercad",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Microcontroller-with-lcd-keypad.jpg?width=800",
+      wiring: {
+        arduino: "4x4 keypad rows → D9, D8, D7, D6; columns → D5, D4, D3, D2; servo signal → D10; green LED → D11; red LED → D12. Use +5V for keypad and servo, keep GND shared.",
+        esp32: "4x4 keypad rows → GPIO 13, 12, 14, 27; columns → GPIO 26, 25, 33, 32; servo signal → GPIO 15; green LED → GPIO 2; red LED → GPIO 4. Use a common ground and proper power rails."
+      },
+      code: {
+        arduino: String.raw`// Keypad Smart Lock (Tinkercad) - Arduino Uno
+#include <Keypad.h>
+#include <Servo.h>
+
+Servo lockServo;
+const String SECRET_PIN = "1234";
+String enteredPin = "";
+
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {9, 8, 7, 6};
+byte colPins[COLS] = {5, 4, 3, 2};
+
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+const int servoPin = 10;
+const int greenLed = 11;
+const int redLed = 12;
+
+void setup() {
+  Serial.begin(9600);
+  lockServo.attach(servoPin);
+  lockServo.write(0); // Locked position
+  pinMode(greenLed, OUTPUT);
+  pinMode(redLed, OUTPUT);
+  digitalWrite(redLed, HIGH);
+}
+
+void loop() {
+  char key = keypad.getKey();
+  if (key) {
+    Serial.print("Key: ");
+    Serial.println(key);
+    if (key == '*') {
+      enteredPin = "";
+    } else if (key == '#') {
+      if (enteredPin == SECRET_PIN) {
+        digitalWrite(redLed, LOW);
+        digitalWrite(greenLed, HIGH);
+        lockServo.write(90); // Unlock
+        delay(4000);
+        lockServo.write(0);  // Relock
+        digitalWrite(greenLed, LOW);
+        digitalWrite(redLed, HIGH);
+      } else {
+        for (int i = 0; i < 3; i++) {
+          digitalWrite(redLed, LOW);
+          delay(150);
+          digitalWrite(redLed, HIGH);
+          delay(150);
+        }
+      }
+      enteredPin = "";
+    } else {
+      enteredPin += key;
+    }
+  }
+}`,
+        esp32: String.raw`// Keypad Smart Lock - ESP32
+#include <Keypad.h>
+#include <ESP32Servo.h>
+
+Servo lockServo;
+const String SECRET_PIN = "1234";
+String enteredPin = "";
+
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {13, 12, 14, 27};
+byte colPins[COLS] = {26, 25, 33, 32};
+
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+const int servoPin = 15;
+const int greenLed = 2;
+const int redLed = 4;
+
+void setup() {
+  Serial.begin(115200);
+  lockServo.attach(servoPin);
+  lockServo.write(0); // Locked
+  pinMode(greenLed, OUTPUT);
+  pinMode(redLed, OUTPUT);
+  digitalWrite(redLed, HIGH);
+}
+
+void loop() {
+  char key = keypad.getKey();
+  if (key) {
+    if (key == '*') {
+      enteredPin = "";
+    } else if (key == '#') {
+      if (enteredPin == SECRET_PIN) {
+        digitalWrite(redLed, LOW);
+        digitalWrite(greenLed, HIGH);
+        lockServo.write(90);
+        delay(4000);
+        lockServo.write(0);
+        digitalWrite(greenLed, LOW);
+        digitalWrite(redLed, HIGH);
+      }
+      enteredPin = "";
+    } else {
+      enteredPin += key;
+    }
+  }
+}`
+      }
+    },
+    "lcd-code": {
+      title: "LCD Code",
+      filename: "lcd_code",
+      image: "https://commons.wikimedia.org/wiki/Special:FilePath/Arduino_Breadboard_LCD_Trial_One.jpg?width=800",
+      wiring: {
+        arduino: "LCD I2C: SDA → A4, SCL → A5; VCC → 5V; GND → GND. Backlight is enabled in setup for the 16x2 display.",
+        esp32: "LCD I2C: SDA → GPIO 21, SCL → GPIO 22; VCC → 3.3V or 5V depending on module; GND → GND. Backlight is enabled in setup for the 16x2 display."
+      },
+      code: {
+        arduino: String.raw`// LCD 16x2 I2C Display Code - Arduino Uno
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("GET ROBOTICS");
+  lcd.setCursor(0, 1);
+  lcd.print("System Ready!");
+  delay(2000);
+}
+
+void loop() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Build & Innovate");
+  lcd.setCursor(0, 1);
+  lcd.print("Uptime: ");
+  lcd.print(millis() / 1000);
+  lcd.print("s");
+  delay(1000);
+}`,
+        esp32: String.raw`// LCD 16x2 I2C Display Code - ESP32 (SDA: GPIO 21, SCL: GPIO 22)
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Wire.begin(21, 22);
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("GET ROBOTICS");
+  lcd.setCursor(0, 1);
+  lcd.print("ESP32 Online!");
+  delay(2000);
+}
+
+void loop() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("ESP32 LCD Mode");
+  lcd.setCursor(0, 1);
+  lcd.print("Time: ");
+  lcd.print(millis() / 1000);
+  lcd.print("s");
+  delay(1000);
+}`
+      }
     }
   };
 
@@ -792,7 +1077,13 @@ void loop() {
     "smart-robot-car": "motor-car",
     "wifi-robot-car": "wifi-car",
     "laser-obstacle-detector": "laser",
-    "breadboard-led-lights": "leds"
+    "breadboard-led-lights": "leds",
+    "ultrasonic-alarm": "ultrasonic-alarm",
+    "project-7": "ultrasonic-alarm",
+    "keypad-smart-lock": "keypad-smart-lock",
+    "project-8": "keypad-smart-lock",
+    "lcd-code": "lcd-code",
+    "project-9": "lcd-code"
   };
 
   const modal = document.getElementById("project-modal");

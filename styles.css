@@ -470,8 +470,8 @@ a:focus-visible {
 .card-image-box {
   position: relative;
   width: 100%;
-  height: 175px;
-  flex: 0 0 175px;
+  height: 210px;
+  flex: 0 0 210px;
   overflow: hidden;
   border-bottom: 1px solid rgba(0, 240, 255, 0.15);
   background: #090D16;
@@ -479,8 +479,10 @@ a:focus-visible {
 
 .card-image-box img {
   width: 100%;
-  height: 100%;
+  height: 210px;
   object-fit: cover;
+  object-position: center;
+  display: block;
   transition: transform 0.35s ease;
 }
 
